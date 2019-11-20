@@ -10,21 +10,16 @@ usage(){
 }
 
 #check the number of parameters
-if [ $# -ne 2 ]
-then
+if [ $# -ne 2 ]; then
 	usage
 fi
 
-if [[ $2 == "-r" ]]
-then
+TOWN_PARAM=$(echo $1 | tr -d '"')
+
+if [[ $2 == "-r" ]] ; then
   	mkdir -p ex1/all
 
-	TOWN_PARAM=$(echo $1 | tr -d '"')
 	QUERY_RES=$(curl -s wttr.in/"$TOWN_PARAM" |tail -3 |head -1)
-
-	#(?=,|\[) added "\[" for the "Location: Berlin [52.52045,13.40732]" example
-	AUX_QUERY_TOWN=$(echo $QUERY_RES | grep -Po '(?<=:).*?(?=,|\[)')
-	QUERY_TOWN=$(echo $AUX_QUERY_TOWN |  (sed 's/^ //; s/ $//') )
 
 	LATITUDE=$(echo $QUERY_RES | grep -Po '(?<=\[).*?(?=,)')
 	LONGITUDE=$(echo $QUERY_RES | grep -Po '(?<=,)[0-9-.]*?(?=\])')
@@ -42,15 +37,26 @@ then
 
 	TIME_FPATH="ex1/RUN[$TIMESTAMP].txt"
 	touch $TIME_FPATH
-	printf "$TOWN$QUERY_TOWN\n$COUNTRY$QUERY_COUNTRY\n$TEMPERATURE$QUERY_TEMP" > $TIME_FPATH
+	printf "$TOWN$TOWN_PARAM\n$COUNTRY$QUERY_COUNTRY\n$TEMPERATURE$QUERY_TEMP" > $TIME_FPATH
+	echo $QUERY_COUNTRY
 
-	TOWN_FPATH="ex1/all/$QUERY_TOWN.txt"
-	touch $TOWN_FPATH
-	printf "[$TIMESTAMP] - $QUERY_TEMP\n" >> $TOWN_FPATH
+	TOWN_FPATH=ex1/all/$TOWN_PARAM.txt
+	touch "$TOWN_FPATH"
+	printf "[$TIMESTAMP] - $QUERY_TEMP\n" >> "$TOWN_FPATH"
 
-elif [[ $2 == "-x" ]]
-then
-	echo "$2 remove"
+elif [[ $2 == "-x" ]]; then
+	rm "ex1/all/$TOWN_PARAM.txt" 2</dev/null
+
+	for file in ex1/*; do
+    if [ -f "$file" ]; then
+        echo "$file"
+				TOWN_NAME=$(head -1 $file | grep -Po '(?<=\:\ ).*')
+				echo $TOWN_NAME
+				if [ "$TOWN_NAME" == "$TOWN_PARAM" ]; then
+					rm "$file"
+				fi
+    fi
+	done
 elif [[ $2 == "-l" ]]
 then
 	echo "$2 list"

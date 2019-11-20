@@ -15,6 +15,7 @@ if [ $# -ne 2 ]; then
 fi
 
 TOWN_PARAM=$(echo $1 | tr -d '"')
+TOWN_FPATH=ex1/all/$TOWN_PARAM.txt
 
 if [[ $2 == "-r" ]] ; then
   	mkdir -p ex1/all
@@ -38,9 +39,7 @@ if [[ $2 == "-r" ]] ; then
 	TIME_FPATH="ex1/RUN[$TIMESTAMP].txt"
 	touch $TIME_FPATH
 	printf "$TOWN$TOWN_PARAM\n$COUNTRY$QUERY_COUNTRY\n$TEMPERATURE$QUERY_TEMP" > $TIME_FPATH
-	echo $QUERY_COUNTRY
 
-	TOWN_FPATH=ex1/all/$TOWN_PARAM.txt
 	touch "$TOWN_FPATH"
 	printf "[$TIMESTAMP] - $QUERY_TEMP\n" >> "$TOWN_FPATH"
 
@@ -49,17 +48,18 @@ elif [[ $2 == "-x" ]]; then
 
 	for file in ex1/*; do
     if [ -f "$file" ]; then
-        echo "$file"
 				TOWN_NAME=$(head -1 $file | grep -Po '(?<=\:\ ).*')
-				echo $TOWN_NAME
 				if [ "$TOWN_NAME" == "$TOWN_PARAM" ]; then
 					rm "$file"
 				fi
     fi
 	done
-elif [[ $2 == "-l" ]]
-then
-	echo "$2 list"
+
+elif [[ $2 == "-l" ]]; then
+	LINES_CNT=$(wc -l 2>/dev/null < "$TOWN_FPATH")
+	if [ $? -eq 0 ]; then
+		echo $LINES_CNT
+	fi
 else
 	usage
 fi
